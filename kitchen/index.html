@@ -10,6 +10,16 @@
     <script type="module">
        
     import { generateContentFromAI } from './src/llm.js';
+    const INTRO_MESSAGE = `Welcome to The Kitchen! I'm Daniel, your personal health assistant. I’m here to help you create recipes that align with your fitness goals and taste preferences. 
+
+To get started, tell me: 
+- What’s one of your fitness goals? (e.g., weight loss, muscle gain)
+- Or, is there a recipe you're craving? (e.g., a high-protein meal, a quick snack)
+
+Let me know, and we’ll create something great together!`;
+
+    let history = [];
+
    
     class Example extends Phaser.Scene
 {
@@ -44,7 +54,8 @@
     text.setMask(mask);
 
     // Initial instructions
-    let instructionText = this.add.text(10, 10, 'Welcome to The Kitchen! Please enter your name:', { font: '18px Courier', fill: '#ffffff' });
+    let instructionText = this.add.text(10, 10, INTRO_MESSAGE, { font: '18px Courier', fill: '#ffffff' });
+    instructionText.setWordWrapWidth(containerWidth-20);
     instructionText.setVisible(true);  // Initially visible
 
     // Create the text entry for the user input at the bottom
@@ -134,8 +145,17 @@
             
             // System response (AI or default)
             try {
-                const aiResponse = await generateContentFromAI(userMessage); // Get AI response
-                addSystemResponse.call(this, aiResponse); // Add the AI response to the chat
+                const aiResponse = await generateContentFromAI(userMessage, history); // Get AI response
+                addSystemResponse.call(this, aiResponse); 
+                // add to history
+                history.push({
+                role: "user",
+                parts: [{ text: userMessage }],
+              })
+                history.push({
+                role: "model",
+                parts: [{ text: aiResponse }],
+              },)
             } catch (error) {
                 console.error("Failed to generate content from AI:", error);
                 addSystemResponse.call(this, "Sorry, I couldn't process your request.");
