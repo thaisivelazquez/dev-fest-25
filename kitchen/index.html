@@ -1,0 +1,201 @@
+<!-- <!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/style.css">
+    <title>Phaser - Template</title>
+</head>
+
+<body>
+    <div id="app">
+        <div id="game-container"></div>
+    </div>
+    <script type="module" src="src/main.js"></script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    
+</head>
+<body>
+
+    <script>
+    // class Example extends Phaser.Scene
+    // {
+    //     preload ()
+    //     {
+    //         this.load.setBaseURL('https://labs.phaser.io');
+
+    //         this.load.image('sky', 'assets/skies/space3.png');
+    //         this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+    //         this.load.image('red', 'assets/particles/red.png');
+    //     }
+
+    //     create ()
+    //     {
+    //         this.add.image(400, 300, 'sky');
+
+    //         const particles = this.add.particles(0, 0, 'red', {
+    //             speed: 100,
+    //             scale: { start: 1, end: 0 },
+    //             blendMode: 'ADD'
+    //         });
+
+    //         const logo = this.physics.add.image(400, 100, 'logo');
+
+    //         logo.setVelocity(100, 200);
+    //         logo.setBounce(1, 1);
+    //         logo.setCollideWorldBounds(true);
+
+    //         particles.startFollow(logo);
+    //     }
+    // }
+
+    // const config = {
+    //     type: Phaser.AUTO,
+    //     width: 800,
+    //     height: 600,
+    //     scene: Example,
+    //     physics: {
+    //         default: 'arcade',
+    //         arcade: {
+    //             gravity: { y: 200 }
+    //         }
+    //     }
+    // };
+
+    // const game = new Phaser.Game(config);
+    class Example extends Phaser.Scene
+{
+    preload ()
+        {
+            this.load.setBaseURL('https://labs.phaser.io');
+
+            this.load.image('sky', 'assets/skies/space3.png');
+    //         this.load.image('logo', 'assets/sprites/phaser3-logo.png');
+    //         this.load.image('red', 'assets/particles/red.png');
+        }
+      create() {
+        // Container size
+        let containerWidth = 800;  // Define the container width
+        let containerHeight = 600; // Define the container height
+
+        // Create a container to hold chat messages
+        let chatContainer = this.add.container(10, 100);
+
+        // Initial instructions
+        let instructionText = this.add.text(10, 10, 'Please enter your name:', { font: '32px Courier', fill: '#ffffff' });
+        instructionText.setVisible(true);  // Initially visible
+
+        // Create the text entry for the user input at the bottom
+        let textEntry = this.add.text(10, 0, '', { font: '32px Courier', fill: '#ffff00' });
+        textEntry.setWordWrapWidth(containerWidth - 20);  // Set word wrap for the input
+
+        let chatYPosition = 0; // Track vertical position for new messages
+
+        // Create a graphics object to draw a box around the input field
+        let inputBox = this.add.graphics();
+        inputBox.lineStyle(2, 0xffff00, 1);  // Set box border color (yellow)
+        inputBox.strokeRect(5, containerHeight - 65, containerWidth - 20, 50); // Create a box (x, y, width, height)
+
+        // Function to add a user message with word wrapping
+        function addUserMessageWithBox(message) {
+            // Create a user message text with word wrapping
+            let userMessage = this.add.text(10, chatYPosition + 5, message, { font: '32px Courier', fill: '#ffff00' });
+            userMessage.setWordWrapWidth(containerWidth - 20);  // Set word wrap for user message text
+
+            // Calculate height dynamically based on text content
+            let messageHeight = userMessage.height; // Height of the user message (based on word wrap)
+
+            // Create a box around the user message
+            let messageBox = this.add.graphics();
+            messageBox.fillStyle(0x0066cc, 0.7);  // Set box color (blue with some transparency)
+            messageBox.fillRoundedRect(5, chatYPosition, containerWidth - 20, messageHeight, 15);  // Draw box (x, y, width, height, border radius)
+
+            // Add user message and box to chat container
+            chatContainer.add(messageBox);  
+            chatContainer.add(userMessage);
+
+            // Update the vertical position for the next message
+            chatYPosition += messageHeight; // Increment position for next message
+            updateChatPosition(); // Update scroll position after each message
+        }
+
+        // Function to add a system response (plain text, no box)
+        function addSystemResponse(message) {
+            // Create a system message text with word wrapping
+            let systemMessage = this.add.text(10, chatYPosition, message, { font: '32px Courier', fill: '#ffffff' });
+            systemMessage.setWordWrapWidth(containerWidth - 20);  // Set word wrap for system message text
+
+            // Calculate height dynamically based on text content
+            let messageHeight = systemMessage.height; // Height of the system message (based on word wrap)
+
+            // Add system message to chat container
+            chatContainer.add(systemMessage); 
+
+            // Update the vertical position for the next message
+            chatYPosition += messageHeight; // Increment position for next message
+            updateChatPosition(); // Update scroll position after each message
+        }
+
+       
+        function updateChatPosition() {
+            // Check if messages exceed the visible height of the chat container
+            const maxScrollHeight = containerHeight - 150; // Maximum height for the chat area (leaving space for the input box)
+
+            if (chatYPosition > maxScrollHeight) {  // Stop scrolling when messages exceed the chat height minus the input box height
+                chatContainer.y = maxScrollHeight - chatYPosition;  // Scroll up the chat container, stopping above the input box
+            }
+        }
+
+        // Handle keyboard input
+        this.input.keyboard.on('keydown', event => {
+            if (event.keyCode === 8 && textEntry.text.length > 0) {  // Backspace
+                textEntry.text = textEntry.text.substr(0, textEntry.text.length - 1);
+            } else if (event.keyCode === 32 || (event.keyCode >= 48 && event.keyCode <= 90)) {  // Letters and space
+                textEntry.text += event.key;
+            }
+
+            // Redraw the input box around the text entry field as the user types
+            inputBox.clear();  // Clear the previous box
+            inputBox.lineStyle(2, 0xffff00, 1);  // Set box border color (yellow)
+            inputBox.strokeRect(5, containerHeight - 65, textEntry.width + 10, 50);  // Draw a box around text entry
+
+            if (event.keyCode === 13 && textEntry.text.length > 0) {  // Enter key
+                // Hide the initial instruction text after user input
+                instructionText.setVisible(false);  // Hide the instructions once the user starts typing
+
+                const userMessage = textEntry.text; // Store user input
+                chatYPosition += 10;
+                addUserMessageWithBox.call(this, userMessage); // Add user message with box
+                textEntry.text = ''; // Clear the text field
+                chatYPosition += 10;
+                // System response (can be more dynamic later)
+                const systemMessage = "Hi, " + userMessage + "! How can I help you today?";
+                addSystemResponse.call(this, systemMessage);
+                
+            }
+        });
+
+        // Position the text entry at the bottom of the screen
+        textEntry.setY(containerHeight - 60);  // Move text entry to bottom (adjust the value as needed)
+    }
+}
+
+const config = {
+    type: Phaser.AUTO,
+    parent: 'phaser-example',
+    width: 800,
+    height: 600,
+    scene: Example
+};
+
+const game = new Phaser.Game(config);
+    </script>
+
+</body>
+</html>
