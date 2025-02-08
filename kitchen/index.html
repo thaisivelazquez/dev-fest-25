@@ -20,121 +20,166 @@
             this.load.image('sky', 'assets/skies/space3.png');
     
         }
-      create() {
-       
-                
-        
-        // Container size
-        let containerWidth = 800;  // Define the container width
-        let containerHeight = 600; // Define the container height
+  
+    create() {
+    // Container size
+    let containerWidth = 800;  // Define the container width
+    let containerHeight = 600; // Define the container height
 
-        // Create a container to hold chat messages
-        let chatContainer = this.add.container(10, 100);
+    // Create a container to hold chat messages
+    let chatContainer = this.add.container(10, 100);
 
-        // Initial instructions
-        let instructionText = this.add.text(10, 10, 'Please enter your name:', { font: '20px Courier', fill: '#ffffff' });
-        instructionText.setVisible(true);  // Initially visible
+    // Create a graphics object to draw a mask for the chat area
+    const graphics = this.make.graphics();
+    graphics.fillStyle(0xffffff);
+    graphics.fillRect(0, 0, containerWidth - 20, containerHeight - 60);
+    const mask = new Phaser.Display.Masks.GeometryMask(this, graphics);
 
-        // Create the text entry for the user input at the bottom
-        let textEntry = this.add.text(10, 0, '', { font: '20px Courier', fill: '#ffff00' });
-        textEntry.setWordWrapWidth(containerWidth - 20);  // Set word wrap for the input
+    // Set up the chat text container
+    const text = this.add.text(10, 10, "", {
+        fontFamily: 'Courier',
+        color: '#ffffff',
+        wordWrap: { width: containerWidth - 20 },
+    }).setOrigin(0);
+    text.setMask(mask);
 
-        let chatYPosition = 0; // Track vertical position for new messages
+    // Initial instructions
+    let instructionText = this.add.text(10, 10, 'Welcome to The Kitchen! Please enter your name:', { font: '18px Courier', fill: '#ffffff' });
+    instructionText.setVisible(true);  // Initially visible
 
-        // Create a graphics object to draw a box around the input field
-        let inputBox = this.add.graphics();
-        inputBox.lineStyle(2, 0xffff00, 1);  // Set box border color (yellow)
-        inputBox.strokeRect(5, containerHeight - 65, containerWidth - 20, 50); // Create a box (x, y, width, height)
+    // Create the text entry for the user input at the bottom
+    let textEntry = this.add.text(10, 0, '', { font: '18px Courier', fill: '#ffff00' });
+    textEntry.setWordWrapWidth(containerWidth - 20);  // Set word wrap for the input
 
-        // Function to add a user message with word wrapping
-        function addUserMessageWithBox(message) {
-            // Create a user message text with word wrapping
-            let userMessage = this.add.text(10, chatYPosition + 5, message, { font: '20px Courier', fill: '#ffff00' });
-            userMessage.setWordWrapWidth(containerWidth - 20);  // Set word wrap for user message text
+    let chatYPosition = 0; // Track vertical position for new messages
 
-            // Calculate height dynamically based on text content
-            let messageHeight = userMessage.height; // Height of the user message (based on word wrap)
+    // Create a graphics object to draw a box around the input field
+    let inputBox = this.add.graphics();
+    inputBox.lineStyle(2, 0xffff00, 1);  // Set box border color (yellow)
+    inputBox.strokeRect(5, containerHeight - 65, containerWidth - 20, 50); // Create a box (x, y, width, height)
 
-            // Create a box around the user message
-            let messageBox = this.add.graphics();
-            messageBox.fillStyle(0x0066cc, 0.7);  // Set box color (blue with some transparency)
-            messageBox.fillRoundedRect(5, chatYPosition, containerWidth - 20, messageHeight, 15);  // Draw box (x, y, width, height, border radius)
+    // Function to add a user message with word wrapping
+    function addUserMessageWithBox(message) {
+        // Create a user message text with word wrapping
+        let userMessage = this.add.text(10, chatYPosition + 5, message, { font: '18px Courier', fill: '#ffff00' });
+        userMessage.setWordWrapWidth(containerWidth - 20);  // Set word wrap for user message text
 
-            // Add user message and box to chat container
-            chatContainer.add(messageBox);  
-            chatContainer.add(userMessage);
+        // Calculate height dynamically based on text content
+        let messageHeight = userMessage.height; // Height of the user message (based on word wrap)
 
-            // Update the vertical position for the next message
-            chatYPosition += messageHeight; // Increment position for next message
-            updateChatPosition(); // Update scroll position after each message
-        }
+        // Create a box around the user message
+        let messageBox = this.add.graphics();
+        messageBox.fillStyle(0x0066cc, 0.7);  // Set box color (blue with some transparency)
+        messageBox.fillRoundedRect(5, chatYPosition, containerWidth - 20, messageHeight, 15);  // Draw box (x, y, width, height, border radius)
 
-        // Function to add a system response (plain text, no box)
-        function addSystemResponse(message) {
-            // Create a system message text with word wrapping
-            let systemMessage = this.add.text(10, chatYPosition, message, { font: '20px Courier', fill: '#ffffff' });
-            systemMessage.setWordWrapWidth(containerWidth - 20);  // Set word wrap for system message text
+        // Add user message and box to chat container
+        chatContainer.add(messageBox);  
+        chatContainer.add(userMessage);
 
-            // Calculate height dynamically based on text content
-            let messageHeight = systemMessage.height; // Height of the system message (based on word wrap)
-
-            // Add system message to chat container
-            chatContainer.add(systemMessage); 
-
-            // Update the vertical position for the next message
-            chatYPosition += messageHeight; // Increment position for next message
-            updateChatPosition(); // Update scroll position after each message
-        }
-
-       
-        function updateChatPosition() {
-            // Check if messages exceed the visible height of the chat container
-            const maxScrollHeight = containerHeight - 150; // Maximum height for the chat area (leaving space for the input box)
-
-            if (chatYPosition > maxScrollHeight) {  // Stop scrolling when messages exceed the chat height minus the input box height
-                chatContainer.y = maxScrollHeight - chatYPosition;  // Scroll up the chat container, stopping above the input box
-            }
-        }
-
-        // Handle keyboard input
-        this.input.keyboard.on('keydown', async  event => {
-            if (event.keyCode === 8 && textEntry.text.length > 0) {  // Backspace
-                textEntry.text = textEntry.text.substr(0, textEntry.text.length - 1);
-            } else if (event.keyCode === 32 || (event.keyCode >= 48 && event.keyCode <= 90)) {  // Letters and space
-                textEntry.text += event.key;
-            }
-
-            // Redraw the input box around the text entry field as the user types
-            inputBox.clear();  // Clear the previous box
-            inputBox.lineStyle(2, 0xffff00, 1);  // Set box border color (yellow)
-            inputBox.strokeRect(5, containerHeight - 65, textEntry.width + 10, 50);  // Draw a box around text entry
-
-            if (event.keyCode === 13 && textEntry.text.length > 0) {  // Enter key
-                // Hide the initial instruction text after user input
-                instructionText.setVisible(false);  // Hide the instructions once the user starts typing
-
-                const userMessage = textEntry.text; // Store user input
-                chatYPosition += 10;
-                addUserMessageWithBox.call(this, userMessage); // Add user message with box
-                textEntry.text = ''; // Clear the text field
-                chatYPosition += 10;
-                // System response 
-                try {
-                    // Call the function to generate AI response
-                    const aiResponse = await generateContentFromAI(userMessage); // Pass the user message as prompt
-                    addSystemResponse.call(this, aiResponse); // Display the AI response
-                } catch (error) {
-                    // Handle any errors from the AI API call
-                    console.error("Failed to generate content from AI:", error);
-                    addSystemResponse.call(this, "Sorry, I couldn't process your request.");
-                }
-                
-            }
-        });
-
-        // Position the text entry at the bottom of the screen
-        textEntry.setY(containerHeight - 60);  // Move text entry to bottom (adjust the value as needed)
+        // Update the vertical position for the next message
+        chatYPosition += messageHeight; // Increment position for next message
+        updateChatPosition(); // Update scroll position after each message
     }
+
+    // Function to add a system response (plain text, no box)
+    function addSystemResponse(message) {
+        // Create a system message text with word wrapping
+        let systemMessage = this.add.text(10, chatYPosition, message, { font: '18px Courier', fill: '#ffffff' });
+        systemMessage.setWordWrapWidth(containerWidth - 20);  // Set word wrap for system message text
+
+        // Calculate height dynamically based on text content
+        let messageHeight = systemMessage.height; // Height of the system message (based on word wrap)
+
+        // Add system message to chat container
+        chatContainer.add(systemMessage); 
+
+        // Update the vertical position for the next message
+        chatYPosition += messageHeight; // Increment position for next message
+        updateChatPosition(); // Update scroll position after each message
+    }
+
+    // Function to update chat container position to allow scrolling
+    function updateChatPosition() {
+        const maxScrollHeight = containerHeight - 60; // Leave space for the input box at the bottom
+
+        // Scroll up the chat container if it exceeds the height
+        if (chatYPosition > maxScrollHeight) {
+            chatContainer.y = maxScrollHeight - chatYPosition;  // Scroll up to show the most recent messages
+        }
+    }
+
+    // Handle keyboard input
+    this.input.keyboard.on('keydown', async event => {
+        if (event.keyCode === 8 && textEntry.text.length > 0) {  // Backspace
+            textEntry.text = textEntry.text.substr(0, textEntry.text.length - 1);
+        } else if (event.keyCode === 32 || (event.keyCode >= 48 && event.keyCode <= 90)) {  // Letters and space
+            textEntry.text += event.key;
+        }
+
+        // Redraw the input box around the text entry field as the user types
+        inputBox.clear();  // Clear the previous box
+        inputBox.lineStyle(2, 0xffff00, 1);  // Set box border color (yellow)
+        inputBox.strokeRect(5, containerHeight - 65, textEntry.width + 10, 50);  // Draw a box around text entry
+
+        // When Enter key is pressed, send the user message
+        if (event.keyCode === 13 && textEntry.text.length > 0) {  // Enter key
+            // Hide the initial instruction text after user input
+            instructionText.setVisible(false);  // Hide the instructions once the user starts typing
+
+            const userMessage = textEntry.text; // Store user input
+            chatYPosition += 10;
+            addUserMessageWithBox.call(this, userMessage); // Add user message with box
+            textEntry.text = ''; // Clear the text field
+            chatYPosition += 10;
+            
+            // System response (AI or default)
+            try {
+                const aiResponse = await generateContentFromAI(userMessage); // Get AI response
+                addSystemResponse.call(this, aiResponse); // Add the AI response to the chat
+            } catch (error) {
+                console.error("Failed to generate content from AI:", error);
+                addSystemResponse.call(this, "Sorry, I couldn't process your request.");
+            }
+        }
+    });
+
+    // Position the text entry at the bottom of the screen
+    textEntry.setY(containerHeight - 60);  // Move text entry to bottom (adjust the value as needed)
+
+    // Create an interactive zone to allow dragging (scrolling) the chat container
+    const zone = this.add.zone(10, 100, containerWidth - 20, containerHeight - 60)
+        .setOrigin(0)
+        .setInteractive();
+
+    let startY = 0;  // Track the starting Y position of the pointer
+
+    zone.on('pointerdown', (pointer) => {
+        startY = pointer.y;
+    });
+
+    zone.on('pointermove', (pointer) => {
+        if (pointer.isDown) {
+            const deltaY = pointer.y - startY; // How much the pointer has moved vertically
+            startY = pointer.y;
+
+            // Move the chat container based on pointer movement
+            chatContainer.y += deltaY;
+
+            // Prevent the chat container from scrolling out of bounds
+            chatContainer.y = Phaser.Math.Clamp(chatContainer.y, -(chatYPosition - containerHeight + 60), 0);
+        }
+    });
+
+    // Handle trackpad/mouse wheel scroll
+    this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY) => {
+        // Use deltaY to scroll up/down
+        chatContainer.y += deltaY;
+
+        // Prevent the chat container from scrolling out of bounds
+        chatContainer.y = Phaser.Math.Clamp(chatContainer.y, -(chatYPosition - containerHeight + 60), 0);
+    });
+}
+
 }
 
 const config = {
@@ -147,7 +192,6 @@ const config = {
 
 const game = new Phaser.Game(config);
     </script>
-    <script type="module" src="src/llm.js"></script>
    
 
 </body>
