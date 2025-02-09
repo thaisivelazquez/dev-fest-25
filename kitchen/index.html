@@ -10,7 +10,7 @@
     <script type="module">
        
     import { generateContentFromAI } from './src/llm.js';
-    const INTRO_MESSAGE = `Welcome to The Kitchen! I'm Daniel, your personal health assistant. I’m here to help you create recipes that align with your fitness goals and taste preferences. 
+    const INTRO_MESSAGE = `Welcome to The Capybara Cafe! I'm Daniel, your personal health assistant & chef. I’m here to help you create recipes that align with your fitness goals and taste preferences. 
 
 To get started, tell me: 
 - What’s one of your fitness goals? (e.g., weight loss, muscle gain)
@@ -33,7 +33,7 @@ Let me know, and we’ll create something great together!`;
             // this.load.image('bomb', 'assets/bomb.png');
             // this.load.setBaseURL('https://cdn.phaserfiles.com/v385');
         this.load.image('capy', 'assets/capy.png');
-        this.load.image('background', 'assets/cafe-test.jpg');
+        this.load.image('background', 'assets/cafe-test.png');
         this.load.image('menu', 'assets/menu.jpg');
      
     
@@ -42,7 +42,7 @@ Let me know, and we’ll create something great together!`;
     create() {
     var background = this.add.image(1000,400, 'background');
     background.displayHeight = window.innerHeight;
-    background.displayWidth = window.innerWidth - 500;
+    background.displayWidth = window.innerWidth - 400;
 
     var menu = this.add.image(250,400, 'menu');
     menu.displayHeight = window.innerHeight;
