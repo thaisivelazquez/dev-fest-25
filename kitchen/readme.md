@@ -1,7 +1,3 @@
-# Coin Clicker
-
-This is a simple coin clicker game. The goal is to click the coin as many times as possible in the time limit.
-
 ## Instructions
 
 1. Clone the repository.

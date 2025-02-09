@@ -12,9 +12,9 @@ BE AS CONCISE AS POSSIBLE`;
 
 
 export async function generateContentFromAI(user_input, history) {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
     try {
-        // replace with GEMINI API key
-        const apiKey = "";
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" ,  systemInstruction: SYSTEM_PROMPT});
         // const result = await model.generateContent(prompt);

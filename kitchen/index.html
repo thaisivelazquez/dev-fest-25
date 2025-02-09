@@ -25,21 +25,12 @@ To get started, tell me:
     catAstroPhi;
     preload ()
         {
-            // this.load.setBaseURL('https://labs.phaser.io');
-            // this.load.setBaseURL('https://cdn.phaserfiles.com/v385');
-
-            // this.load.image('sky', 'assets/skies/space3.png');
-            // this.load.image('watermelon', 'assets/sprites/watermelon.png');
-            // this.load.image('bomb', 'assets/bomb.png');
-            // this.load.setBaseURL('https://cdn.phaserfiles.com/v385');
         this.load.image('capy', 'assets/capy.png');
         this.load.image('background', 'assets/cafe-test.png');
         this.load.image('menu', 'assets/menu.jpg');
        
         this.load.audio('musicaudio', 'assets/lofi-hiphop-chill-background-lofi-296305.mp3');
 
-            
-     
     
         }
         startGame() {
@@ -49,6 +40,7 @@ To get started, tell me:
    
   
     create() {
+        
 
         this.input.once('pointerdown', this.startGame, this);
 
@@ -319,10 +311,9 @@ To get started, tell me:
 
     async function fetchImages(query) {
         // ADD GEMINI API KEY
-        const apiKey = '';
-        const cx = '90813595671e04505';  // Replace with your CSE ID
-         // Search query -> figure out what to search on
-        // var query = "cartoon" + query;  // You can change the search term
+        const apiKey = import.meta.env.VITE_CUSTOM_SEARCH_JSON_API_KEY;
+        const cx = import.meta.env.VITE_SEARCH_ENGINE_ID;  // Replace with your CSE ID
+        // Search query -> figure out what to search on
         var query = "cartoon" + query;
 
     // API URL
