@@ -22,6 +22,7 @@ To get started, tell me:
    
     class Example extends Phaser.Scene
 {
+    catAstroPhi;
     preload ()
         {
             // this.load.setBaseURL('https://labs.phaser.io');
@@ -34,19 +35,36 @@ To get started, tell me:
         this.load.image('capy', 'assets/capy.png');
         this.load.image('background', 'assets/cafe-test.png');
         this.load.image('menu', 'assets/menu.jpg');
+       
+        this.load.audio('musicaudio', 'assets/lofi-hiphop-chill-background-lofi-296305.mp3');
+
+            
      
     
         }
+        startGame() {
+        // Play music after the user clicks or interacts
+        this.sound.play('musicaudio', { loop: true });  // Play background music
+    }
+   
   
     create() {
+
+        this.input.once('pointerdown', this.startGame, this);
+
+   
+
     let chatYPosition = 0; // Track vertical position for new messages
     var background = this.add.image(1000,400, 'background');
     background.displayHeight = window.innerHeight;
     background.displayWidth = window.innerWidth - 400;
 
+    
     var menu = this.add.image(250,400, 'menu');
     menu.displayHeight = window.innerHeight;
     menu.displayWidth = 575;
+
+  
   
     // Container size
     let containerWidth = 500;  // Define the container width
@@ -199,8 +217,7 @@ To get started, tell me:
 
         // When Enter key is pressed, send the user message
         if (event.keyCode === 13 && textEntry.text.length > 0) {  // Enter key
-            // Hide the initial instruction text after user input
-
+            
             const userMessage = textEntry.text; // Store user input
             chatYPosition += 40;
             addUserMessageWithBox.call(this, userMessage); // Add user message with box
@@ -224,6 +241,33 @@ To get started, tell me:
                 console.error("Failed to generate content from AI:", error);
                 addSystemResponse.call(this, "Sorry, I couldn't process your request.");
             }
+
+            // check 
+            const containsRecipeKeyword = /recipe|meal/i.test(userMessage);
+
+            if (containsRecipeKeyword) {
+                // get ingredients
+                const ingredientsMessage = "extract recipe title, be as concise as possible" 
+                const ingredientResponse = await generateContentFromAI(ingredientsMessage, history); // Get AI response
+                console.log(ingredientResponse);
+                // fetch images
+                const url = await fetchImages(ingredientResponse );  // Query for the main item (e.g., "Unhealthy Indulgent Taco")
+                const corsProxy = 'https://cors-anywhere.herokuapp.com/';  // CORS proxy URL
+
+                const proxiedUrl = corsProxy + url;
+                this.load.image('upload', proxiedUrl);   // add task
+                this.load.on(Phaser.Loader.Events.COMPLETE, ()=>
+                {
+                    console.log('image loaded!')
+                    const food = this.add.image(1050, 525 , 'upload');
+                    food.displayHeight = 55;
+                    food.displayWidth = 55;
+
+                    }, 
+                    
+                    this);       
+                this.load.start();
+                }
         }
           // Redraw the input box around the text entry field as the user types
           inputBox.clear();  // Clear the previous box
@@ -269,8 +313,44 @@ To get started, tell me:
         // Prevent the chat container from scrolling out of bounds
         chatContainer.y = Phaser.Math.Clamp(chatContainer.y, -(chatYPosition - containerHeight + 260), 0);
     });
-       
-}
+
+   
+
+
+    async function fetchImages(query) {
+        // ADD GEMINI API KEY
+        const apiKey = '';
+        const cx = '90813595671e04505';  // Replace with your CSE ID
+         // Search query -> figure out what to search on
+        // var query = "cartoon" + query;  // You can change the search term
+        var query = "cartoon" + query;
+
+    // API URL
+        const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${query}&searchType=image`;
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            const items = data.items;
+        if (items && items.length > 0) {
+            // this.load.once('complete', this.addSprites, this);
+
+            // this.load.image('upload', 'assets/test-capy.png');
+            const imageUrl = items[0].link;  // Image URL from the search result
+            console.log("Adding image: ", imageUrl);
+            return imageUrl;
+
+           
+        }} catch (error) {
+            console.error('Error making request:', error);
+        }
+        
+    }
+    
+    
+    }
+   
+   
 
 }
 
@@ -282,7 +362,11 @@ const config = {
     width: window.innerWidth,
     height: window.innerHeight,
     // backgroundColor: '#ffffff',
-    scene: Example
+    scene: Example,
+    audio: {
+        disableWebAudio: true,
+        noAudio: false
+    },
 };
 
 const game = new Phaser.Game(config);
