@@ -15,8 +15,7 @@
 To get started, tell me: 
 - What’s one of your fitness goals? (e.g., weight loss, muscle gain)
 - Or, is there a recipe you're craving? (e.g., a high-protein meal, a quick snack)
-
-Let me know, and we’ll create something great together!`;
+`;
 
     let history = [];
 
@@ -40,6 +39,7 @@ Let me know, and we’ll create something great together!`;
         }
   
     create() {
+    let chatYPosition = 0; // Track vertical position for new messages
     var background = this.add.image(1000,400, 'background');
     background.displayHeight = window.innerHeight;
     background.displayWidth = window.innerWidth - 400;
@@ -47,9 +47,7 @@ Let me know, and we’ll create something great together!`;
     var menu = this.add.image(250,400, 'menu');
     menu.displayHeight = window.innerHeight;
     menu.displayWidth = 575;
-    // var player =  this.add.image(700, 300,'capy');
-    // player.displayWidth = 100;
-    // player.displayHeight = 100;
+  
     // Container size
     let containerWidth = 500;  // Define the container width
     let containerHeight = window.innerHeight; // Define the container height
@@ -58,37 +56,67 @@ Let me know, and we’ll create something great together!`;
     let chatContainer = this.add.container(10, 100);
     
 
-    // Create a graphics object to draw a mask for the chat area
-    const graphics = this.make.graphics();
-    graphics.fillStyle(0xffffff);
-    graphics.fillRect(0, 0, containerWidth - 100, containerHeight - 100);
-    const mask = new Phaser.Display.Masks.GeometryMask(this, graphics);
+    let instructionText = this.add.text(15, chatYPosition, INTRO_MESSAGE, { font: '18px Courier', fill: '#000000' });
+    instructionText.setWordWrapWidth(containerWidth - 20);  // Set word wrap for system message text
 
-    // Set up the chat text container
-    const text = this.add.text(10, 10, "", {
-        fontFamily: 'Courier',
-        color: '#ffffff',
-        wordWrap: { width: containerWidth - 20 },
-    }).setOrigin(0);
-    text.setMask(mask);
+    // Calculate height dynamically based on text content
+    let messageHeight = instructionText.height; // Height of the system message (based on word wrap)
+    let messageWidth = instructionText.width;   // Width of the message text
 
-    // Initial instructions
-    let instructionText = this.add.text(15, 50, INTRO_MESSAGE, { font: '18px Courier', fill: '#000000' });
-    instructionText.setWordWrapWidth(containerWidth-20);
-    instructionText.setVisible(true);  // Initially visible
+    // Create a bubble outline for the message
+    let bubbleOutline = this.add.graphics();
+    bubbleOutline.lineStyle(2, 0x0066cc, 1); 
+    bubbleOutline.fillStyle(0x000000, 0.1); // Set the outline color (blue)
+    // bubbleOutline.fillStyle(0xffffff, 0.8);    // Set the fill color (light background with some transparency)
+    bubbleOutline.fillRoundedRect(5, chatYPosition, messageWidth + 10, messageHeight + 15, 15);  // Create a rounded rectangle around the message
 
-    // Create the text entry for the user input at the bottom
-    let textEntry = this.add.text(20, 0, '', { font: '18px Courier', fill: '#945f37' });
-    textEntry.setWordWrapWidth(containerWidth - 20);  // Set word wrap for the input
+    // Add bubble outline and system message to the chat container
+    chatContainer.add(bubbleOutline);
+    chatContainer.add(instructionText);
 
-    let chatYPosition = 0; // Track vertical position for new messages
+    chatYPosition+=250;
 
-    // Create a graphics object to draw a box around the input field
+// Create an input box graphics object
     let inputBox = this.add.graphics();
-    inputBox.lineStyle(2, 0x945f37, 1);  // Set the border color to yellow with thickness of 2
+    inputBox.lineStyle(2, 0x945f37, 1);  // Set the border color to brown with thickness of 2
     inputBox.fillStyle(0x000000, 0);  // Set fill color to transparent (alpha = 0)
     inputBox.fillRoundedRect(15, containerHeight - 65, containerWidth - 20, 50, 15);  // Draw the rounded rectangle
     inputBox.strokeRoundedRect(15, containerHeight - 65, containerWidth - 20, 50, 15);  // Apply the border around the rectangle
+
+    // Create text entry (input area) and placeholder
+    let textEntry = this.add.text(20, containerHeight - 60, '', { font: '18px Courier', fill: '#945f37' });
+    let placeholder = 'Type here...'; // Placeholder text
+    let placeholderText = this.add.text(20, containerHeight - 60, placeholder, { font: '18px Courier', fill: '#945f37', fontFamily:'bold' });
+
+    // Set word wrap for both text and placeholder
+    textEntry.setWordWrapWidth(containerWidth - 40);  // Adjust for padding
+    placeholderText.setWordWrapWidth(containerWidth - 40);  // Adjust for padding
+
+    // Handle input changes
+    this.input.keyboard.on('keydown', (event) => {
+        if (event.key === 'Backspace') {
+            if (textEntry.text.length === 0) {
+                placeholderText.setVisible(true); // Show placeholder again if input is empty
+            }
+        } else {
+            if (textEntry.text.length === 0) {
+                placeholderText.setVisible(false); // Hide placeholder text when user starts typing
+            }
+        }
+    });
+
+    // Handle focus on text entry (when the user clicks on it)
+    textEntry.setInteractive();
+    textEntry.on('pointerdown', () => {
+        placeholderText.setVisible(false); // Hide placeholder when text entry is clicked
+    });
+
+    // Optional: To clear the input field
+    function clearInput() {
+        textEntry.text = '';
+        placeholderText.setVisible(true); // Show placeholder again when cleared
+    }
+
 
     // Function to add a user message with word wrapping
     function addUserMessageWithBox(message) {
@@ -99,10 +127,6 @@ Let me know, and we’ll create something great together!`;
         // Calculate height dynamically based on text content
         let messageHeight = userMessage.height; // Height of the user message (based on word wrap)
 
-        // Create a box around the user message
-        // let messageBox = this.add.graphics();
-        // messageBox.fillStyle(0xf09b5b, 0.7);  // Set box color (blue with some transparency)
-        // messageBox.fillRoundedRect(5, chatYPosition, containerWidth - 20, messageHeight, 15);  // Draw box (x, y, width, height, border radius)
 
         let bubbleOutline = this.add.graphics();
         bubbleOutline.lineStyle(2, 0x0066cc, 1); 
@@ -173,23 +197,14 @@ Let me know, and we’ll create something great together!`;
             textEntry.text += event.key;
         }
 
-
-        // Redraw the input box around the text entry field as the user types
-        inputBox.clear();  // Clear the previous box
-        inputBox.lineStyle(2, 0x945f37, 1);  // Set the border color to yellow with thickness of 2
-        inputBox.fillStyle(0x000000, 0);  // Set fill color to transparent (alpha = 0)
-        inputBox.fillRoundedRect(15, containerHeight - 65, textEntry.width + 10, 50, 15);  // Draw the rounded rectangle
-        inputBox.strokeRoundedRect(15, containerHeight - 65, textEntry.width + 10, 50, 15);// Draw a box around text entry
-
         // When Enter key is pressed, send the user message
         if (event.keyCode === 13 && textEntry.text.length > 0) {  // Enter key
             // Hide the initial instruction text after user input
-            instructionText.setVisible(false);  // Hide the instructions once the user starts typing
 
             const userMessage = textEntry.text; // Store user input
             chatYPosition += 40;
             addUserMessageWithBox.call(this, userMessage); // Add user message with box
-            textEntry.text = ''; // Clear the text field
+            clearInput()
             chatYPosition += 40;
             
             // System response (AI or default)
@@ -210,6 +225,13 @@ Let me know, and we’ll create something great together!`;
                 addSystemResponse.call(this, "Sorry, I couldn't process your request.");
             }
         }
+          // Redraw the input box around the text entry field as the user types
+          inputBox.clear();  // Clear the previous box
+          inputBox.lineStyle(2, 0x945f37, 1);  // Set the border color to brown with thickness of 2
+            inputBox.fillStyle(0x000000, 0);  // Set fill color to transparent (alpha = 0)
+            inputBox.fillRoundedRect(15, containerHeight - 65, containerWidth - 20, 50, 15);  // Draw the rounded rectangle
+            inputBox.strokeRoundedRect(15, containerHeight - 65, containerWidth - 20, 50, 15); 
+
     });
 
     // Position the text entry at the bottom of the screen
@@ -247,6 +269,7 @@ Let me know, and we’ll create something great together!`;
         // Prevent the chat container from scrolling out of bounds
         chatContainer.y = Phaser.Math.Clamp(chatContainer.y, -(chatYPosition - containerHeight + 260), 0);
     });
+       
 }
 
 }
